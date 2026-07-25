@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gauge — Resume Screening AI</title>
+<meta name="description" content="Measure candidates against a job description with TF-IDF text similarity, skill matching, and weighted scoring." />
+
+<!-- Fonts: Space Grotesk (display) + IBM Plex Sans (body) + IBM Plex Mono (data/scores) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<!-- Tailwind (Play CDN) + project theme extension -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { 950: '#0b1119', 900: '#0f1620', 800: '#161f2c', 700: '#1e2937', 600: '#2a3644', 500: '#3d4b5c' },
+          paper: { DEFAULT: '#edeae2', dim: '#c9c4b7' },
+          muted: { DEFAULT: '#8b93a1', 2: '#5c6675' },
+          brass: { DEFAULT: '#d9a441', bright: '#e9be68', dim: '#a97e30' },
+          good: '#5b9279',
+          warn: '#c4544b',
+          rule: '#263244',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['"IBM Plex Sans"', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+
+<!-- Lucide icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body class="font-body min-h-screen">
+
+  <!-- ======================= HEADER ======================= -->
+  <header class="border-b border-rule sticky top-0 z-40 bg-ink-950/95 backdrop-blur">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between relative">
+      <div class="brand-glow"></div>
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-ink-800 border border-ink-600 flex items-center justify-center text-brass">
+          <i data-lucide="gauge" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="font-display text-lg font-semibold tracking-tight text-paper leading-none">Gauge</h1>
+          <p class="text-[11px] font-mono text-muted-2 leading-none mt-1">Resume Screening AI</p>
+        </div>
+      </div>
+      <button id="start-over-btn" class="btn-ghost hidden text-xs">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        <span>Start over</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================= STEPPER ======================= -->
+  <nav class="max-w-6xl mx-auto px-6 pt-8 pb-2" aria-label="Progress">
+    <ol class="flex items-stretch gap-3 sm:gap-6">
+      <li class="step-nav-item flex-1" data-step="1" data-state="active">
+        <button class="step-nav-btn" data-target="1">
+          <span class="step-num">01</span>
+          <span class="step-label">Define the role</span>
+        </button>
+      </li>
+      <li class="step-nav-item flex-1" data-step="2" data-state="locked">
+        <button class="step-nav-btn" data-target="2" disabled>
+          <span class="step-num">02</span>
+          <span class="step-label">Add candidates</span>
+        </button>
+      </li>
+      <li class="step-nav-item flex-1" data-step="3" data-state="locked">
+        <button class="step-nav-btn" data-target="3" disabled>
+          <span class="step-num">03</span>
+          <span class="step-label">Calibrate weights</span>
+        </button>
+      </li>
+      <li class="step-nav-item flex-1" data-step="4" data-state="locked">
+        <button class="step-nav-btn" data-target="4" disabled>
+          <span class="step-num">04</span>
+          <span class="step-label">Results</span>
+        </button>
+      </li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ======================= STEP 1 — JOB DESCRIPTION ======================= -->
+    <section id="panel-1" class="step-panel max-w-3xl mx-auto px-6 py-10">
+      <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Step 01</p>
+      <h2 class="font-display text-3xl font-semibold text-paper mb-3">Define the role</h2>
+      <p class="text-muted leading-relaxed mb-8">
+        Paste the job description or upload it as a file. The engine extracts required technical
+        and soft skills automatically — that becomes the spec every resume gets measured against.
+      </p>
+
+      <div class="bg-ink-800 border border-ink-600 rounded-xl p-1 inline-flex gap-1 mb-4" role="tablist" aria-label="Job description input method">
+        <button class="jd-tab-btn active" data-tab="paste" role="tab" aria-selected="true">Paste text</button>
+        <button class="jd-tab-btn" data-tab="upload" role="tab" aria-selected="false">Upload file</button>
+      </div>
+
+      <div id="jd-paste-panel" class="jd-input-panel">
+        <textarea id="jd-textarea" rows="10"
+          placeholder="Paste the full job description here…"
+          class="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-paper placeholder-muted-2 resize-y"></textarea>
+        <div class="flex items-center justify-between mt-2">
+          <span id="jd-word-count" class="font-mono text-xs text-muted-2">0 words</span>
+          <button id="load-sample-jd" class="font-body text-xs hover:text-brass transition-colors" style="color: var(--accent-blue)">Use a sample job description →</button>
+        </div>
+      </div>
+
+      <div id="jd-upload-panel" class="jd-input-panel hidden">
+        <label id="jd-dropzone" class="dropzone">
+          <input type="file" id="jd-file-input" accept=".txt,.pdf,.docx" class="hidden" />
+          <i data-lucide="upload-cloud" class="w-7 h-7 text-muted mb-2"></i>
+          <p class="text-sm text-muted">Drop a file or <span class="text-brass">browse</span></p>
+          <p class="font-mono text-[11px] text-muted-2 mt-1">.txt · .pdf · .docx</p>
+        </label>
+        <p id="jd-file-name" class="font-mono text-xs text-muted mt-2 hidden"></p>
+      </div>
+
+      <div id="jd-confirmation" class="hidden mt-6 card p-5" style="border-color: rgba(217,164,65,0.3);">
+        <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color: var(--signal-good)">
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline -mt-0.5"></i>
+          Role loaded — <span id="jd-word-count-confirmed"></span> words parsed
+        </p>
+        <div class="flex flex-wrap gap-1.5" id="jd-skill-chips"></div>
+      </div>
+
+      <div class="flex justify-end mt-8">
+        <button id="jd-submit-btn" class="btn-primary" disabled>
+          <span class="btn-label">Analyze role</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 btn-icon-arrow"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================= STEP 2 — RESUMES ======================= -->
+    <section id="panel-2" class="step-panel max-w-3xl mx-auto px-6 py-10 hidden">
+      <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Step 02</p>
+      <h2 class="font-display text-3xl font-semibold text-paper mb-3">Add candidates</h2>
+      <p class="text-muted leading-relaxed mb-8">
+        Upload resume files or paste text directly. Each one is run through the same pipeline —
+        cleaned, tokenized, lemmatized — then scanned for skills, years of experience, and education level.
+      </p>
+
+      <label id="resume-dropzone" class="dropzone">
+        <input type="file" id="resume-file-input" accept=".txt,.pdf,.docx" multiple class="hidden" />
+        <i data-lucide="upload-cloud" class="w-7 h-7 text-muted mb-2"></i>
+        <p class="text-sm text-muted">Drop resume files or <span class="text-brass">browse</span> — multiple allowed</p>
+        <p class="font-mono text-[11px] text-muted-2 mt-1">.txt · .pdf · .docx</p>
+      </label>
+
+      <details class="mt-4 group">
+        <summary class="text-xs text-muted-2 hover:text-paper cursor-pointer select-none font-body">+ Paste a resume as text instead</summary>
+        <div class="mt-3 card p-4">
+          <input id="paste-name-input" type="text" placeholder="Candidate name"
+            class="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm text-paper placeholder-muted-2 mb-2" />
+          <textarea id="paste-text-input" rows="5" placeholder="Paste resume text…"
+            class="w-full bg-ink-700 border border-ink-600 rounded-lg px-3 py-2 text-sm text-paper placeholder-muted-2 resize-y"></textarea>
+          <div class="flex justify-end mt-2">
+            <button id="paste-add-btn" class="btn-secondary text-xs py-2 px-3">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i><span>Add to queue</span>
+            </button>
+          </div>
+        </div>
+      </details>
+
+      <!-- queued (not yet uploaded) entries -->
+      <div id="queued-section" class="mt-6 hidden">
+        <p class="font-mono text-[11px] uppercase tracking-widest text-muted-2 mb-2">Queued</p>
+        <ul id="queued-list" class="space-y-2"></ul>
+        <div class="flex justify-end mt-3">
+          <button id="add-queued-btn" class="btn-secondary text-sm">
+            <i data-lucide="upload" class="w-4 h-4"></i>
+            <span class="btn-label">Add to candidate pool</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-8 mb-3">
+        <p class="font-mono text-[11px] uppercase tracking-widest text-muted-2">Candidate pool (<span id="loaded-count">0</span>)</p>
+        <button id="load-sample-resumes" class="text-xs transition-colors" style="color: var(--accent-blue)">Use 4 sample candidates →</button>
+      </div>
+      <ul id="loaded-resumes-list" class="space-y-2"></ul>
+      <p id="empty-pool-msg" class="text-sm text-muted-2 italic py-6 text-center card">No candidates added yet.</p>
+
+      <div class="flex justify-end mt-8">
+        <button id="resumes-continue-btn" class="btn-primary" disabled>
+          <span>Continue to weights</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================= STEP 3 — WEIGHTS ======================= -->
+    <section id="panel-3" class="step-panel max-w-3xl mx-auto px-6 py-10 hidden">
+      <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Step 03</p>
+      <h2 class="font-display text-3xl font-semibold text-paper mb-3">Calibrate the instrument</h2>
+      <p class="text-muted leading-relaxed mb-8">
+        Set how much each signal counts toward the final score. The four weights must add up to 100% —
+        that total is what <code class="font-mono text-xs">calculate_final_scores()</code> uses to combine them.
+      </p>
+
+      <div class="card p-6 space-y-7">
+        <div class="weight-row" data-key="text_similarity">
+          <div class="flex items-baseline justify-between mb-1">
+            <label for="slider-text_similarity" class="text-sm font-medium text-paper">Text similarity</label>
+            <span class="weight-value font-mono text-sm text-brass">40%</span>
+          </div>
+          <p class="text-xs text-muted-2 mb-2">TF-IDF cosine similarity between the full resume and job description text.</p>
+          <input id="slider-text_similarity" type="range" min="0" max="100" value="40" class="weight-slider" />
+        </div>
+
+        <div class="weight-row" data-key="skill_match">
+          <div class="flex items-baseline justify-between mb-1">
+            <label for="slider-skill_match" class="text-sm font-medium text-paper">Skill match</label>
+            <span class="weight-value font-mono text-sm text-brass">30%</span>
+          </div>
+          <p class="text-xs text-muted-2 mb-2">Jaccard overlap between the candidate's detected skills and the role's.</p>
+          <input id="slider-skill_match" type="range" min="0" max="100" value="30" class="weight-slider" />
+        </div>
+
+        <div class="weight-row" data-key="experience">
+          <div class="flex items-baseline justify-between mb-1">
+            <label for="slider-experience" class="text-sm font-medium text-paper">Experience</label>
+            <span class="weight-value font-mono text-sm text-brass">20%</span>
+          </div>
+          <p class="text-xs text-muted-2 mb-2">Years of experience mentioned, normalized against a 20-year benchmark.</p>
+          <input id="slider-experience" type="range" min="0" max="100" value="20" class="weight-slider" />
+        </div>
+
+        <div class="weight-row" data-key="education">
+          <div class="flex items-baseline justify-between mb-1">
+            <label for="slider-education" class="text-sm font-medium text-paper">Education</label>
+            <span class="weight-value font-mono text-sm text-brass">10%</span>
+          </div>
+          <p class="text-xs text-muted-2 mb-2">Highest degree detected — PhD scores highest, then Masters, Bachelors, Diploma.</p>
+          <input id="slider-education" type="range" min="0" max="100" value="10" class="weight-slider" />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-5">
+        <button id="weight-reset-btn" class="btn-ghost text-xs">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Reset to defaults</span>
+        </button>
+        <div class="text-right">
+          <p class="font-mono text-2xl font-semibold" id="weight-total-display">100%</p>
+          <p class="text-[11px] text-muted-2" id="weight-total-label">balanced</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-8">
+        <button id="analyze-btn" class="btn-primary">
+          <span class="btn-label">Run analysis</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 btn-icon-arrow"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================= STEP 4 — RESULTS ======================= -->
+    <section id="panel-4" class="step-panel max-w-6xl mx-auto px-6 py-10 hidden">
+      <div class="flex items-end justify-between flex-wrap gap-4 mb-8">
+        <div>
+          <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Step 04</p>
+          <h2 class="font-display text-3xl font-semibold text-paper">Results</h2>
+        </div>
+        <div class="flex gap-2">
+          <button id="export-csv-btn" class="btn-secondary text-xs">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- summary stat cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div class="card p-4">
+          <p class="text-[11px] text-muted-2 uppercase tracking-widest mb-1">Candidates</p>
+          <p class="font-mono text-2xl text-paper" id="stat-total">—</p>
+        </div>
+        <div class="card p-4">
+          <p class="text-[11px] text-muted-2 uppercase tracking-widest mb-1">Average score</p>
+          <p class="font-mono text-2xl text-paper" id="stat-average">—</p>
+        </div>
+        <div class="card p-4">
+          <p class="text-[11px] text-muted-2 uppercase tracking-widest mb-1">Top score</p>
+          <p class="font-mono text-2xl text-brass" id="stat-top">—</p>
+        </div>
+        <div class="card p-4">
+          <p class="text-[11px] text-muted-2 uppercase tracking-widest mb-1">Strong matches (≥50%)</p>
+          <p class="font-mono text-2xl text-paper" id="stat-strong">—</p>
+        </div>
+      </div>
+
+      <!-- sub-view tabs -->
+      <div class="bg-ink-800 border border-ink-600 rounded-xl p-1 inline-flex flex-wrap gap-1 mb-5" role="tablist" aria-label="Results view">
+        <button class="jd-tab-btn active result-tab-btn" data-view="table">Ranked list</button>
+        <button class="jd-tab-btn result-tab-btn" data-view="rankings">Rankings chart</button>
+        <button class="jd-tab-btn result-tab-btn" data-view="skills">Skills comparison</button>
+        <button class="jd-tab-btn result-tab-btn" data-view="distribution">Score distribution</button>
+        <button class="jd-tab-btn result-tab-btn" data-view="summary">Full report</button>
+      </div>
+
+      <!-- Ranked list -->
+      <div id="view-table" class="result-view">
+        <div class="flex justify-end mb-3">
+          <input id="search-input" type="text" placeholder="Filter by name…"
+            class="bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm text-paper placeholder-muted-2 w-56" />
+        </div>
+        <div class="card overflow-x-auto">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th data-sort="Rank">Rank</th>
+                <th data-sort="Candidate">Candidate</th>
+                <th data-sort="Final_Score">Final score</th>
+                <th data-sort="Text_Similarity">Text sim.</th>
+                <th data-sort="Skill_Match">Skill match</th>
+                <th data-sort="Experience_Score">Experience</th>
+                <th data-sort="Education_Score">Education</th>
+                <th data-sort="Years_Experience">Years</th>
+                <th data-sort="Education_Level">Degree</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Chart views (each backed by a real ResumeScreeningVisualizer PNG) -->
+      <div id="view-rankings" class="result-view hidden">
+        <div class="flex items-center gap-3 mb-3">
+          <label class="text-xs text-muted-2">Show top</label>
+          <input id="rankings-topn" type="number" min="1" max="50" value="10" class="w-16 bg-ink-800 border border-ink-600 rounded-lg px-2 py-1 text-sm text-paper" />
+          <button id="rankings-refresh" class="btn-ghost text-xs"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Update</span></button>
+        </div>
+        <div class="chart-frame"><img id="rankings-img" alt="Bar chart of top candidates ranked by final score" /></div>
+      </div>
+
+      <div id="view-skills" class="result-view hidden">
+        <div class="flex items-center gap-3 mb-3">
+          <label class="text-xs text-muted-2">Show top</label>
+          <input id="skills-topn" type="number" min="1" max="50" value="5" class="w-16 bg-ink-800 border border-ink-600 rounded-lg px-2 py-1 text-sm text-paper" />
+          <button id="skills-refresh" class="btn-ghost text-xs"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Update</span></button>
+        </div>
+        <div class="chart-frame"><img id="skills-img" alt="Comparison of technical and soft skill counts, plus experience and education, across top candidates" /></div>
+      </div>
+
+      <div id="view-distribution" class="result-view hidden">
+        <div class="chart-frame"><img id="distribution-img" alt="Histograms and box plot showing the distribution of scores across all candidates" /></div>
+      </div>
+
+      <div id="view-summary" class="result-view hidden">
+        <div class="chart-frame"><img id="summary-img" alt="Comprehensive summary report combining rankings, distributions, skills comparison, and a statistics table" /></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================= CANDIDATE DETAIL MODAL ======================= -->
+  <div id="candidate-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Candidate detail">
+    <div class="modal-panel">
+      <div class="p-6" id="modal-content"><!-- filled by app.js --></div>
+    </div>
+  </div>
+
+  <!-- ======================= TOASTS ======================= -->
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

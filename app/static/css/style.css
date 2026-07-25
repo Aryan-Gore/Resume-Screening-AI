@@ -1,0 +1,496 @@
+/* =============================================================================
+   Resume Screening AI — stylesheet
+   =============================================================================
+   Design concept: screening a resume is an act of MEASUREMENT — a candidate
+   held up against a spec. Everything here leans into that: an ink/charcoal
+   instrument-panel surface, a single warm brass accent standing in for a
+   calibrated needle, monospaced figures for every number (so scores read
+   like a readout, not decoration), and one recurring signature element —
+   a radial gauge ring — used everywhere a score is shown.
+
+   Organized in sections:
+     1. Design tokens (CSS variables)
+     2. Base / reset
+     3. Scrollbar + focus states
+     4. Step panels & transitions
+     5. Stepper navigation
+     6. Buttons
+     7. Form controls (tabs, dropzone, range sliders)
+     8. Cards & chips
+     9. Results table
+    10. Gauge (signature scoring element)
+    11. Modal
+    12. Toasts
+    13. Misc utilities + reduced motion
+   ========================================================================== */
+
+/* ---------- 1. Design tokens ---------- */
+:root {
+  --ink-950: #0b1119;
+  --ink-900: #0f1620;
+  --ink-800: #161f2c;
+  --ink-700: #1e2937;
+  --ink-600: #2a3644;
+  --ink-500: #3d4b5c;
+
+  --paper: #edeae2;
+  --paper-dim: #c9c4b7;
+  --muted: #8b93a1;
+  --muted-2: #5c6675;
+
+  --brass: #d9a441;
+  --brass-bright: #e9be68;
+  --brass-dim: #a97e30;
+
+  --accent-blue: #6c8cae;
+  --signal-good: #5b9279;
+  --signal-warn: #c4544b;
+
+  --rule: #263244;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- 2. Base / reset ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--ink-950);
+  color: var(--paper);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono, .num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+textarea, input, select, button {
+  font-family: inherit;
+}
+
+/* subtle atmospheric glow behind the header brand mark - the one
+   "decoration for decoration's sake" allowance, kept faint and small */
+.brand-glow {
+  position: absolute;
+  inset: -40px -40px auto -40px;
+  height: 120px;
+  background: radial-gradient(circle at 40px 40px, rgba(217, 164, 65, 0.14), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ---------- 3. Scrollbar + focus ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--ink-950); }
+::-webkit-scrollbar-thumb { background: var(--ink-600); border-radius: 999px; border: 2px solid var(--ink-950); }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-500); }
+
+/* Visible keyboard focus everywhere (quality floor from the design brief) */
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+textarea:focus-visible, input:focus-visible {
+  outline: none; /* these get a border-color treatment instead, see below */
+}
+
+/* ---------- 4. Step panels & page-level transitions ---------- */
+.step-panel {
+  animation: panelIn 420ms var(--ease) both;
+}
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 300ms var(--ease) both;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------- 5. Stepper navigation ---------- */
+.step-nav-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0 0 14px 0;
+  border-bottom: 2px solid var(--rule);
+  background: none;
+  cursor: pointer;
+  transition: border-color 220ms var(--ease);
+}
+.step-nav-btn:disabled {
+  cursor: not-allowed;
+}
+.step-nav-btn .step-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+  margin-bottom: 6px;
+  transition: color 220ms var(--ease);
+}
+.step-nav-btn .step-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 220ms var(--ease);
+}
+.step-nav-item[data-state="active"] .step-nav-btn { border-color: var(--brass); }
+.step-nav-item[data-state="active"] .step-num { color: var(--brass); }
+.step-nav-item[data-state="active"] .step-label { color: var(--paper); }
+.step-nav-item[data-state="complete"] .step-nav-btn { border-color: var(--signal-good); }
+.step-nav-item[data-state="complete"] .step-num { color: var(--signal-good); }
+.step-nav-item[data-state="complete"] .step-label { color: var(--paper-dim); }
+.step-nav-item[data-state="complete"] .step-nav-btn:hover { border-color: var(--brass); }
+.step-nav-item[data-state="locked"] .step-nav-btn { opacity: 0.45; }
+
+/* ---------- 6. Buttons ---------- */
+.btn-primary, .btn-secondary, .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  padding: 11px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease), opacity 160ms var(--ease);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--brass);
+  color: var(--ink-950);
+}
+.btn-primary:hover:not(:disabled) { background: var(--brass-bright); transform: translateY(-1px); }
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:disabled { background: var(--ink-600); color: var(--muted-2); cursor: not-allowed; }
+
+.btn-secondary {
+  background: var(--ink-800);
+  color: var(--paper);
+  border-color: var(--ink-600);
+}
+.btn-secondary:hover:not(:disabled) { border-color: var(--brass); color: var(--brass-bright); }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 12px;
+}
+.btn-ghost:hover { color: var(--paper); }
+
+.btn-primary svg, .btn-secondary svg, .btn-ghost svg { width: 15px; height: 15px; }
+
+/* small icon-only button, used for row-level remove/close actions */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+.btn-icon:hover { background: var(--ink-700); color: var(--signal-warn); }
+.btn-icon svg { width: 15px; height: 15px; }
+
+/* ---------- 7. Form controls ---------- */
+textarea, input[type="text"] {
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+textarea:focus, input[type="text"]:focus {
+  border-color: var(--brass) !important;
+  background: var(--ink-700);
+}
+
+.jd-tab-btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+.jd-tab-btn.active {
+  background: var(--ink-700);
+  color: var(--brass-bright);
+}
+.jd-tab-btn:hover:not(.active) { color: var(--paper); }
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 20px;
+  border: 1.5px dashed var(--ink-500);
+  border-radius: 12px;
+  background: var(--ink-800);
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--brass);
+  background: var(--ink-700);
+}
+
+/* Range sliders (weight calibration) — themed to match the brass accent
+   instead of the browser default, since defaults look inconsistent and
+   generic across browsers */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ink-600);
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brass);
+  border: 3px solid var(--ink-950);
+  box-shadow: 0 0 0 1px var(--brass);
+  cursor: pointer;
+  transition: transform 160ms var(--ease);
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brass);
+  border: 3px solid var(--ink-950);
+  box-shadow: 0 0 0 1px var(--brass);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ink-600);
+}
+
+/* ---------- 8. Cards & chips ---------- */
+.card {
+  background: var(--ink-800);
+  border: 1px solid var(--ink-600);
+  border-radius: 14px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--ink-700);
+  border: 1px solid var(--ink-600);
+  color: var(--paper-dim);
+}
+.chip.chip-technical { border-color: rgba(217, 164, 65, 0.35); color: var(--brass-bright); }
+.chip.chip-soft { border-color: rgba(108, 140, 174, 0.4); color: var(--accent-blue); }
+
+.pill-education {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--ink-700);
+  color: var(--paper-dim);
+  white-space: nowrap;
+}
+
+/* ---------- 9. Results table ---------- */
+.results-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.results-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--ink-900);
+  text-align: left;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+.results-table thead th:hover { color: var(--brass-bright); }
+.results-table thead th.sorted { color: var(--brass); }
+.results-table thead th .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.6; font-size: 10px; }
+.results-table tbody tr {
+  cursor: pointer;
+  transition: background 140ms var(--ease);
+}
+.results-table tbody tr:hover { background: var(--ink-800); }
+.results-table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--rule); }
+.results-table tbody td {
+  padding: 12px 14px;
+  color: var(--paper-dim);
+  vertical-align: middle;
+}
+.results-table tbody td.candidate-name-cell {
+  color: var(--paper);
+  font-weight: 500;
+}
+.results-table tbody td.rank-cell {
+  font-family: var(--font-mono);
+  color: var(--muted);
+  width: 1%;
+}
+.results-table tbody tr.rank-first {
+  box-shadow: inset 3px 0 0 var(--brass);
+}
+
+.gauge-mini { display: inline-flex; }
+
+/* ---------- 10. Gauge — the signature scoring element ---------- */
+/* Built as inline SVG by app.js; these classes style the pieces so all
+   gauge coloring stays centralized here rather than scattered in JS. */
+.gauge-track { stroke: var(--ink-600); fill: none; }
+.gauge-fill { stroke: var(--brass); fill: none; stroke-linecap: round; transition: stroke-dashoffset 800ms var(--ease); }
+.gauge-tick { stroke: var(--ink-500); }
+.gauge-value { fill: var(--paper); font-family: var(--font-mono); font-weight: 600; }
+.gauge-value-sub { fill: var(--muted-2); font-family: var(--font-body); }
+
+/* ---------- 11. Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 17, 25, 0.75);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 5vh 16px;
+  z-index: 100;
+  animation: fadeIn 200ms var(--ease) both;
+}
+.modal-panel {
+  background: var(--ink-900);
+  border: 1px solid var(--ink-600);
+  border-radius: 16px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalIn 260ms var(--ease) both;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---------- 12. Toasts ---------- */
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 340px;
+}
+.toast {
+  background: var(--ink-800);
+  border: 1px solid var(--ink-600);
+  border-left: 3px solid var(--brass);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--paper-dim);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  animation: toastIn 220ms var(--ease) both;
+}
+.toast.toast-error { border-left-color: var(--signal-warn); }
+.toast.toast-success { border-left-color: var(--signal-good); }
+.toast.toast-out { animation: toastOut 200ms var(--ease) both; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(16px); }
+}
+
+/* ---------- 13. Misc + reduced motion ---------- */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--ink-600);
+  border-top-color: var(--brass);
+  animation: spin 700ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.hidden { display: none !important; }
+
+.chart-frame {
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 12px;
+  overflow: hidden;
+}
+.chart-frame img { width: 100%; height: auto; display: block; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

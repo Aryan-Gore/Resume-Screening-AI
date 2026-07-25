@@ -1,0 +1,23 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.venv/
+venv/
+
+# Generated at runtime - never committed
+app/static/charts/*.png
+app/static/charts_test/*.png
+
+# OS / editor cruft
+.DS_Store
+*.swp
+.vscode/
+.idea/
