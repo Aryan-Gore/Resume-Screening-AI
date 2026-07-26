@@ -2,6 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+
+<!-- Set the theme attribute before first paint, synchronously, so there's
+     no flash of the wrong theme. Must run before the stylesheet's colors
+     get applied — earliest possible point in <head>. -->
+<script>
+  (function () {
+    var saved = localStorage.getItem('gauge-theme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Gauge — Resume Screening AI</title>
 <meta name="description" content="Measure candidates against a job description with TF-IDF text similarity, skill matching, and weighted scoring." />
@@ -11,20 +23,28 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 
-<!-- Tailwind (Play CDN) + project theme extension -->
+<!-- Tailwind (Play CDN) + project theme extension.
+     Every color below points AT a CSS custom property (defined per-theme
+     in style.css) instead of a literal hex. That's what makes existing
+     utility classes like bg-ink-800 / text-paper / text-brass stay
+     theme-aware automatically — no dark: variant classes needed anywhere
+     in this file. -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
     theme: {
       extend: {
         colors: {
-          ink: { 950: '#0b1119', 900: '#0f1620', 800: '#161f2c', 700: '#1e2937', 600: '#2a3644', 500: '#3d4b5c' },
-          paper: { DEFAULT: '#edeae2', dim: '#c9c4b7' },
-          muted: { DEFAULT: '#8b93a1', 2: '#5c6675' },
-          brass: { DEFAULT: '#d9a441', bright: '#e9be68', dim: '#a97e30' },
-          good: '#5b9279',
-          warn: '#c4544b',
-          rule: '#263244',
+          ink: {
+            950: 'var(--ink-950)', 900: 'var(--ink-900)', 800: 'var(--ink-800)',
+            700: 'var(--ink-700)', 600: 'var(--ink-600)', 500: 'var(--ink-500)',
+          },
+          paper: { DEFAULT: 'var(--paper)', dim: 'var(--paper-dim)' },
+          muted: { DEFAULT: 'var(--muted)', 2: 'var(--muted-2)' },
+          brass: { DEFAULT: 'var(--brass)', bright: 'var(--brass-bright)', dim: 'var(--brass-dim)' },
+          good: 'var(--signal-good)',
+          warn: 'var(--signal-warn)',
+          rule: 'var(--rule)',
         },
         fontFamily: {
           display: ['"Space Grotesk"', 'sans-serif'],
@@ -43,6 +63,7 @@
 </head>
 
 <body class="font-body min-h-screen">
+  <div class="page-glow"></div>
 
   <!-- ======================= HEADER ======================= -->
   <header class="border-b border-rule sticky top-0 z-40 bg-ink-950/95 backdrop-blur">
@@ -57,38 +78,68 @@
           <p class="text-[11px] font-mono text-muted-2 leading-none mt-1">Resume Screening AI</p>
         </div>
       </div>
-      <button id="start-over-btn" class="btn-ghost hidden text-xs">
-        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-        <span>Start over</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button id="start-over-btn" class="btn-ghost hidden text-xs">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Start over</span>
+        </button>
+        <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Toggle light and dark theme" title="Toggle theme">
+          <i data-lucide="sun" class="icon-sun"></i>
+          <i data-lucide="moon" class="icon-moon"></i>
+        </button>
+      </div>
     </div>
   </header>
 
   <!-- ======================= STEPPER ======================= -->
   <nav class="max-w-6xl mx-auto px-6 pt-8 pb-2" aria-label="Progress">
-    <ol class="flex items-stretch gap-3 sm:gap-6">
+    <ol class="stepper-track flex items-start gap-3 sm:gap-6">
       <li class="step-nav-item flex-1" data-step="1" data-state="active">
         <button class="step-nav-btn" data-target="1">
-          <span class="step-num">01</span>
-          <span class="step-label">Define the role</span>
+          <span class="step-circle">
+            <span class="step-circle-num">1</span>
+            <svg class="step-circle-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="step-text">
+            <span class="step-num-label">Step 01</span>
+            <span class="step-label">Define the role</span>
+          </span>
         </button>
       </li>
       <li class="step-nav-item flex-1" data-step="2" data-state="locked">
         <button class="step-nav-btn" data-target="2" disabled>
-          <span class="step-num">02</span>
-          <span class="step-label">Add candidates</span>
+          <span class="step-circle">
+            <span class="step-circle-num">2</span>
+            <svg class="step-circle-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="step-text">
+            <span class="step-num-label">Step 02</span>
+            <span class="step-label">Add candidates</span>
+          </span>
         </button>
       </li>
       <li class="step-nav-item flex-1" data-step="3" data-state="locked">
         <button class="step-nav-btn" data-target="3" disabled>
-          <span class="step-num">03</span>
-          <span class="step-label">Calibrate weights</span>
+          <span class="step-circle">
+            <span class="step-circle-num">3</span>
+            <svg class="step-circle-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="step-text">
+            <span class="step-num-label">Step 03</span>
+            <span class="step-label">Calibrate weights</span>
+          </span>
         </button>
       </li>
       <li class="step-nav-item flex-1" data-step="4" data-state="locked">
         <button class="step-nav-btn" data-target="4" disabled>
-          <span class="step-num">04</span>
-          <span class="step-label">Results</span>
+          <span class="step-circle">
+            <span class="step-circle-num">4</span>
+            <svg class="step-circle-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          <span class="step-text">
+            <span class="step-num-label">Step 04</span>
+            <span class="step-label">Results</span>
+          </span>
         </button>
       </li>
     </ol>
@@ -130,7 +181,7 @@
         <p id="jd-file-name" class="font-mono text-xs text-muted mt-2 hidden"></p>
       </div>
 
-      <div id="jd-confirmation" class="hidden mt-6 card p-5" style="border-color: rgba(217,164,65,0.3);">
+      <div id="jd-confirmation" class="hidden mt-6 card p-5" style="border-color: var(--brass-border-soft);">
         <p class="font-mono text-xs uppercase tracking-widest mb-3" style="color: var(--signal-good)">
           <i data-lucide="check-circle-2" class="w-3.5 h-3.5 inline -mt-0.5"></i>
           Role loaded — <span id="jd-word-count-confirmed"></span> words parsed
@@ -381,5 +432,18 @@
   <div id="toast-container" aria-live="polite"></div>
 
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+  <!-- Theme toggle click handler. Kept as a tiny inline script rather than
+       folded into app.js, since this is purely a presentation concern
+       (one attribute + one localStorage key) with nothing to do with the
+       wizard's application state. -->
+  <script>
+    document.getElementById('theme-toggle-btn').addEventListener('click', function () {
+      var current = document.documentElement.getAttribute('data-theme');
+      var next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('gauge-theme', next);
+    });
+  </script>
 </body>
 </html>

@@ -1,58 +1,118 @@
 /* =============================================================================
    Resume Screening AI — stylesheet
    =============================================================================
-   Design concept: screening a resume is an act of MEASUREMENT — a candidate
-   held up against a spec. Everything here leans into that: an ink/charcoal
-   instrument-panel surface, a single warm brass accent standing in for a
-   calibrated needle, monospaced figures for every number (so scores read
-   like a readout, not decoration), and one recurring signature element —
-   a radial gauge ring — used everywhere a score is shown.
+   Design concept unchanged from v1: screening a resume is an act of
+   MEASUREMENT — a candidate held up against a spec. Instrument-panel
+   surface, one warm brass accent standing in for a calibrated needle,
+   monospaced figures for every score, and a radial gauge ring as the
+   signature element wherever a score appears.
+
+   What's new in this pass: a real light/dark theme system (every color
+   below is a semantic CSS variable, redefined per theme — nothing is a
+   bare hex value inside a component rule), proper elevation via a tuned
+   shadow scale, a redesigned connected-circle stepper, and refined
+   buttons/cards. Tailwind's config in index.html now points its color
+   keys AT these variables, so existing utility classes (bg-ink-800,
+   text-paper, etc.) stay theme-aware without touching every element.
 
    Organized in sections:
-     1. Design tokens (CSS variables)
+     1. Design tokens — dark (default) + light override
      2. Base / reset
-     3. Scrollbar + focus states
-     4. Step panels & transitions
-     5. Stepper navigation
-     6. Buttons
-     7. Form controls (tabs, dropzone, range sliders)
-     8. Cards & chips
-     9. Results table
-    10. Gauge (signature scoring element)
-    11. Modal
-    12. Toasts
-    13. Misc utilities + reduced motion
+     3. Page background treatment
+     4. Scrollbar + focus states
+     5. Step panels & transitions
+     6. Stepper navigation (redesigned: connected circle badges)
+     7. Theme toggle
+     8. Buttons
+     9. Form controls (tabs, dropzone, range sliders)
+    10. Cards & chips
+    11. Results table
+    12. Gauge (signature scoring element)
+    13. Modal
+    14. Toasts
+    15. Chart frame
+    16. Misc utilities + reduced motion
    ========================================================================== */
 
 /* ---------- 1. Design tokens ---------- */
-:root {
-  --ink-950: #0b1119;
-  --ink-900: #0f1620;
-  --ink-800: #161f2c;
-  --ink-700: #1e2937;
-  --ink-600: #2a3644;
-  --ink-500: #3d4b5c;
+/* Dark is the default (no data-theme attribute, or data-theme="dark").
+   Light overrides every token inside [data-theme="light"]. Components
+   below reference ONLY these variables — never a literal hex — so theme
+   switching is a single attribute flip on <html>, nothing more. */
+:root,
+[data-theme="dark"] {
+  --ink-950: #0b1119;   /* page background */
+  --ink-900: #0f1620;   /* header / elevated surface */
+  --ink-800: #161f2c;   /* card surface */
+  --ink-700: #1e2937;   /* hover surface */
+  --ink-600: #2a3644;   /* border */
+  --ink-500: #3d4b5c;   /* stronger border */
 
-  --paper: #edeae2;
-  --paper-dim: #c9c4b7;
-  --muted: #8b93a1;
-  --muted-2: #5c6675;
+  --paper: #edeae2;      /* primary text */
+  --paper-dim: #c9c4b7;  /* secondary text, high emphasis */
+  --muted: #8b93a1;      /* secondary text */
+  --muted-2: #5c6675;    /* tertiary / placeholder text */
 
-  --brass: #d9a441;
-  --brass-bright: #e9be68;
-  --brass-dim: #a97e30;
+  --brass: #d9a441;        /* accent */
+  --brass-bright: #e9be68; /* accent, hover/emphasis state */
+  --brass-dim: #a97e30;    /* accent, muted use */
+  --on-accent: #14100a;    /* text placed ON TOP of accent-filled elements — stays dark in both themes since brass reads better under dark text than light */
 
   --accent-blue: #6c8cae;
   --signal-good: #5b9279;
   --signal-warn: #c4544b;
 
   --rule: #263244;
+  --overlay: rgba(6, 9, 14, 0.72);
+
+  --brass-glow: rgba(217, 164, 65, 0.14);
+  --brass-border-soft: rgba(217, 164, 65, 0.32);
+  --glow-primary: rgba(217, 164, 65, 0.08);
+  --glow-secondary: rgba(108, 140, 174, 0.06);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --shadow-accent: 0 0 0 3px rgba(217, 164, 65, 0.16);
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "IBM Plex Sans", sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
-
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-theme="light"] {
+  --ink-950: #f6f4ef;   /* page background */
+  --ink-900: #ffffff;   /* header / elevated surface */
+  --ink-800: #ffffff;   /* card surface */
+  --ink-700: #f2efe7;   /* hover surface */
+  --ink-600: #e5e0d3;   /* border */
+  --ink-500: #d2cbb8;   /* stronger border */
+
+  --paper: #1c1712;
+  --paper-dim: #464035;
+  --muted: #6d6659;
+  --muted-2: #96907f;
+
+  --brass: #b8792a;         /* deepened for AA-ish contrast on light surfaces */
+  --brass-bright: #9c6621;  /* "emphasis" now means deeper, not lighter — correct hover direction on a light bg */
+  --brass-dim: #8a5c1e;
+  --on-accent: #ffffff;
+
+  --accent-blue: #3f6484;
+  --signal-good: #2f6b4c;
+  --signal-warn: #a3392f;
+
+  --rule: #e5e0d3;
+  --overlay: rgba(28, 23, 16, 0.45);
+
+  --brass-glow: rgba(184, 121, 42, 0.12);
+  --brass-border-soft: rgba(184, 121, 42, 0.35);
+  --glow-primary: rgba(184, 121, 42, 0.06);
+  --glow-secondary: rgba(63, 100, 132, 0.05);
+
+  --shadow-sm: 0 1px 2px rgba(28, 23, 16, 0.06), 0 1px 1px rgba(28, 23, 16, 0.04);
+  --shadow-md: 0 16px 40px rgba(28, 23, 16, 0.1);
+  --shadow-accent: 0 0 0 3px rgba(184, 121, 42, 0.14);
 }
 
 /* ---------- 2. Base / reset ---------- */
@@ -69,6 +129,7 @@ body {
   color: var(--paper);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  transition: background 220ms var(--ease), color 220ms var(--ease);
 }
 
 h1, h2, h3, .font-display {
@@ -84,34 +145,46 @@ textarea, input, select, button {
   font-family: inherit;
 }
 
-/* subtle atmospheric glow behind the header brand mark - the one
-   "decoration for decoration's sake" allowance, kept faint and small */
+/* ---------- 3. Page background treatment ---------- */
+/* A very low-opacity gradient wash instead of a flat solid fill — this is
+   the difference between "a dark div" and a surface with depth. Subtle by
+   design; the accent color should read from the gauge/buttons, not the
+   backdrop. */
+.page-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -10%, var(--glow-primary), transparent),
+    radial-gradient(ellipse 55% 35% at 100% 0%, var(--glow-secondary), transparent);
+}
+
 .brand-glow {
   position: absolute;
   inset: -40px -40px auto -40px;
   height: 120px;
-  background: radial-gradient(circle at 40px 40px, rgba(217, 164, 65, 0.14), transparent 70%);
+  background: radial-gradient(circle at 40px 40px, var(--brass-glow), transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
 
-/* ---------- 3. Scrollbar + focus ---------- */
+/* ---------- 4. Scrollbar + focus ---------- */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--ink-950); }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--ink-600); border-radius: 999px; border: 2px solid var(--ink-950); }
 ::-webkit-scrollbar-thumb:hover { background: var(--ink-500); }
 
-/* Visible keyboard focus everywhere (quality floor from the design brief) */
 :focus-visible {
   outline: 2px solid var(--brass);
   outline-offset: 2px;
   border-radius: 4px;
 }
 textarea:focus-visible, input:focus-visible {
-  outline: none; /* these get a border-color treatment instead, see below */
+  outline: none; /* border-color treatment instead, see Section 9 */
 }
 
-/* ---------- 4. Step panels & page-level transitions ---------- */
+/* ---------- 5. Step panels & page-level transitions ---------- */
 .step-panel {
   animation: panelIn 420ms var(--ease) both;
 }
@@ -128,46 +201,133 @@ textarea:focus-visible, input:focus-visible {
   to   { opacity: 1; }
 }
 
-/* ---------- 5. Stepper navigation ---------- */
+/* ---------- 6. Stepper navigation — connected circle badges ---------- */
+.stepper-track {
+  position: relative;
+}
+.stepper-track::before {
+  /* one continuous connector line behind every circle; each circle has an
+     opaque background so it visually "sits on" the line at its position */
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  right: 18px;
+  height: 2px;
+  background: var(--ink-600);
+  z-index: 0;
+}
+
 .step-nav-btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
   text-align: left;
-  padding: 0 0 14px 0;
-  border-bottom: 2px solid var(--rule);
+  padding: 0;
   background: none;
+  border: none;
   cursor: pointer;
-  transition: border-color 220ms var(--ease);
 }
-.step-nav-btn:disabled {
-  cursor: not-allowed;
+.step-nav-btn:disabled { cursor: not-allowed; }
+
+.step-circle {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-800);
+  border: 2px solid var(--ink-600);
+  transition: background 220ms var(--ease), border-color 220ms var(--ease), box-shadow 220ms var(--ease), transform 220ms var(--ease);
 }
-.step-nav-btn .step-num {
+.step-circle-num {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-2);
+  transition: color 220ms var(--ease);
+}
+.step-circle-check {
+  display: none;
+  width: 16px;
+  height: 16px;
+  color: var(--on-accent);
+}
+
+.step-text { min-width: 0; }
+.step-num-label {
   display: block;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--muted-2);
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   transition: color 220ms var(--ease);
 }
-.step-nav-btn .step-label {
+.step-label {
   display: block;
-  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: color 220ms var(--ease);
 }
-.step-nav-item[data-state="active"] .step-nav-btn { border-color: var(--brass); }
-.step-nav-item[data-state="active"] .step-num { color: var(--brass); }
+
+/* active */
+.step-nav-item[data-state="active"] .step-circle {
+  background: var(--brass);
+  border-color: var(--brass);
+  box-shadow: var(--shadow-accent);
+  transform: scale(1.06);
+}
+.step-nav-item[data-state="active"] .step-circle-num { color: var(--on-accent); }
+.step-nav-item[data-state="active"] .step-num-label { color: var(--brass); }
 .step-nav-item[data-state="active"] .step-label { color: var(--paper); }
-.step-nav-item[data-state="complete"] .step-nav-btn { border-color: var(--signal-good); }
-.step-nav-item[data-state="complete"] .step-num { color: var(--signal-good); }
+
+/* complete */
+.step-nav-item[data-state="complete"] .step-circle {
+  background: var(--signal-good);
+  border-color: var(--signal-good);
+}
+.step-nav-item[data-state="complete"] .step-circle-num { display: none; }
+.step-nav-item[data-state="complete"] .step-circle-check { display: block; }
 .step-nav-item[data-state="complete"] .step-label { color: var(--paper-dim); }
-.step-nav-item[data-state="complete"] .step-nav-btn:hover { border-color: var(--brass); }
+.step-nav-item[data-state="complete"] .step-nav-btn:hover .step-circle {
+  border-color: var(--brass);
+  box-shadow: 0 0 0 3px var(--brass-glow);
+}
+
+/* locked */
 .step-nav-item[data-state="locked"] .step-nav-btn { opacity: 0.45; }
 
-/* ---------- 6. Buttons ---------- */
+/* ---------- 7. Theme toggle ---------- */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--ink-600);
+  background: var(--ink-800);
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), color 160ms var(--ease), background 160ms var(--ease);
+}
+.theme-toggle-btn:hover { border-color: var(--brass); color: var(--brass); background: var(--ink-700); }
+.theme-toggle-btn svg { width: 16px; height: 16px; }
+.theme-toggle-btn .icon-moon { display: none; }
+[data-theme="light"] .theme-toggle-btn .icon-sun { display: none; }
+[data-theme="light"] .theme-toggle-btn .icon-moon { display: inline-flex; }
+
+/* ---------- 8. Buttons ---------- */
 .btn-primary, .btn-secondary, .btn-ghost {
   display: inline-flex;
   align-items: center;
@@ -178,25 +338,27 @@ textarea:focus-visible, input:focus-visible {
   padding: 11px 20px;
   border-radius: 10px;
   cursor: pointer;
-  transition: transform 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease), opacity 160ms var(--ease);
+  transition: transform 160ms var(--ease), background 160ms var(--ease), border-color 160ms var(--ease), opacity 160ms var(--ease), box-shadow 160ms var(--ease);
   border: 1px solid transparent;
   white-space: nowrap;
 }
 .btn-primary {
-  background: var(--brass);
-  color: var(--ink-950);
+  background: linear-gradient(180deg, var(--brass-bright), var(--brass));
+  color: var(--on-accent);
+  box-shadow: var(--shadow-sm);
 }
-.btn-primary:hover:not(:disabled) { background: var(--brass-bright); transform: translateY(-1px); }
+.btn-primary:hover:not(:disabled) { box-shadow: var(--shadow-accent), var(--shadow-sm); transform: translateY(-1px); }
 .btn-primary:active:not(:disabled) { transform: translateY(0); }
-.btn-primary:disabled { background: var(--ink-600); color: var(--muted-2); cursor: not-allowed; }
+.btn-primary:disabled { background: var(--ink-600); color: var(--muted-2); cursor: not-allowed; box-shadow: none; }
 
 .btn-secondary {
   background: var(--ink-800);
   color: var(--paper);
   border-color: var(--ink-600);
+  box-shadow: var(--shadow-sm);
 }
-.btn-secondary:hover:not(:disabled) { border-color: var(--brass); color: var(--brass-bright); }
-.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary:hover:not(:disabled) { border-color: var(--brass); color: var(--brass); }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
 .btn-ghost {
   background: transparent;
@@ -207,7 +369,6 @@ textarea:focus-visible, input:focus-visible {
 
 .btn-primary svg, .btn-secondary svg, .btn-ghost svg { width: 15px; height: 15px; }
 
-/* small icon-only button, used for row-level remove/close actions */
 .btn-icon {
   display: inline-flex;
   align-items: center;
@@ -223,7 +384,7 @@ textarea:focus-visible, input:focus-visible {
 .btn-icon:hover { background: var(--ink-700); color: var(--signal-warn); }
 .btn-icon svg { width: 15px; height: 15px; }
 
-/* ---------- 7. Form controls ---------- */
+/* ---------- 9. Form controls ---------- */
 textarea, input[type="text"] {
   transition: border-color 160ms var(--ease), background 160ms var(--ease);
 }
@@ -241,11 +402,12 @@ textarea:focus, input[type="text"]:focus {
   color: var(--muted);
   background: transparent;
   cursor: pointer;
-  transition: background 160ms var(--ease), color 160ms var(--ease);
+  transition: background 160ms var(--ease), color 160ms var(--ease), box-shadow 160ms var(--ease);
 }
 .jd-tab-btn.active {
   background: var(--ink-700);
-  color: var(--brass-bright);
+  color: var(--brass);
+  box-shadow: var(--shadow-sm);
 }
 .jd-tab-btn:hover:not(.active) { color: var(--paper); }
 
@@ -267,9 +429,6 @@ textarea:focus, input[type="text"]:focus {
   background: var(--ink-700);
 }
 
-/* Range sliders (weight calibration) — themed to match the brass accent
-   instead of the browser default, since defaults look inconsistent and
-   generic across browsers */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -308,11 +467,12 @@ input[type="range"]::-moz-range-track {
   background: var(--ink-600);
 }
 
-/* ---------- 8. Cards & chips ---------- */
+/* ---------- 10. Cards & chips ---------- */
 .card {
   background: var(--ink-800);
   border: 1px solid var(--ink-600);
   border-radius: 14px;
+  box-shadow: var(--shadow-sm);
 }
 
 .chip {
@@ -326,7 +486,7 @@ input[type="range"]::-moz-range-track {
   border: 1px solid var(--ink-600);
   color: var(--paper-dim);
 }
-.chip.chip-technical { border-color: rgba(217, 164, 65, 0.35); color: var(--brass-bright); }
+.chip.chip-technical { border-color: var(--brass-border-soft); color: var(--brass); }
 .chip.chip-soft { border-color: rgba(108, 140, 174, 0.4); color: var(--accent-blue); }
 
 .pill-education {
@@ -341,7 +501,7 @@ input[type="range"]::-moz-range-track {
   white-space: nowrap;
 }
 
-/* ---------- 9. Results table ---------- */
+/* ---------- 11. Results table ---------- */
 .results-table {
   width: 100%;
   border-collapse: separate;
@@ -351,7 +511,7 @@ input[type="range"]::-moz-range-track {
 .results-table thead th {
   position: sticky;
   top: 0;
-  background: var(--ink-900);
+  background: var(--ink-700);
   text-align: left;
   font-family: var(--font-body);
   font-weight: 500;
@@ -365,14 +525,14 @@ input[type="range"]::-moz-range-track {
   cursor: pointer;
   user-select: none;
 }
-.results-table thead th:hover { color: var(--brass-bright); }
+.results-table thead th:hover { color: var(--brass); }
 .results-table thead th.sorted { color: var(--brass); }
 .results-table thead th .sort-arrow { display: inline-block; margin-left: 4px; opacity: 0.6; font-size: 10px; }
 .results-table tbody tr {
   cursor: pointer;
   transition: background 140ms var(--ease);
 }
-.results-table tbody tr:hover { background: var(--ink-800); }
+.results-table tbody tr:hover { background: var(--ink-700); }
 .results-table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--rule); }
 .results-table tbody td {
   padding: 12px 14px;
@@ -394,20 +554,18 @@ input[type="range"]::-moz-range-track {
 
 .gauge-mini { display: inline-flex; }
 
-/* ---------- 10. Gauge — the signature scoring element ---------- */
-/* Built as inline SVG by app.js; these classes style the pieces so all
-   gauge coloring stays centralized here rather than scattered in JS. */
+/* ---------- 12. Gauge — the signature scoring element ---------- */
 .gauge-track { stroke: var(--ink-600); fill: none; }
 .gauge-fill { stroke: var(--brass); fill: none; stroke-linecap: round; transition: stroke-dashoffset 800ms var(--ease); }
 .gauge-tick { stroke: var(--ink-500); }
 .gauge-value { fill: var(--paper); font-family: var(--font-mono); font-weight: 600; }
 .gauge-value-sub { fill: var(--muted-2); font-family: var(--font-body); }
 
-/* ---------- 11. Modal ---------- */
+/* ---------- 13. Modal ---------- */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(11, 17, 25, 0.75);
+  background: var(--overlay);
   backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-start;
@@ -424,6 +582,7 @@ input[type="range"]::-moz-range-track {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  box-shadow: var(--shadow-md);
   animation: modalIn 260ms var(--ease) both;
 }
 @keyframes modalIn {
@@ -431,7 +590,7 @@ input[type="range"]::-moz-range-track {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ---------- 12. Toasts ---------- */
+/* ---------- 14. Toasts ---------- */
 #toast-container {
   position: fixed;
   top: 20px;
@@ -450,7 +609,7 @@ input[type="range"]::-moz-range-track {
   padding: 12px 14px;
   font-size: 13px;
   color: var(--paper-dim);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-md);
   animation: toastIn 220ms var(--ease) both;
 }
 .toast.toast-error { border-left-color: var(--signal-warn); }
@@ -465,7 +624,22 @@ input[type="range"]::-moz-range-track {
   to   { opacity: 0; transform: translateX(16px); }
 }
 
-/* ---------- 13. Misc + reduced motion ---------- */
+/* ---------- 15. Chart frame ---------- */
+/* Deliberately NOT tied to --paper/--ink tokens: matplotlib always
+   renders these PNGs on a plain white figure background regardless of
+   app theme, so the frame around them has to stay a fixed light tone in
+   BOTH themes or the chart's white background would clash against a
+   dark frame when the app is in dark mode. */
+.chart-frame {
+  background: #f4f2ec;
+  border-radius: 12px;
+  padding: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.chart-frame img { width: 100%; height: auto; display: block; border-radius: 6px; }
+
+/* ---------- 16. Misc + reduced motion ---------- */
 .spinner {
   width: 18px;
   height: 18px;
@@ -477,14 +651,6 @@ input[type="range"]::-moz-range-track {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .hidden { display: none !important; }
-
-.chart-frame {
-  background: var(--paper);
-  border-radius: 12px;
-  padding: 12px;
-  overflow: hidden;
-}
-.chart-frame img { width: 100%; height: auto; display: block; border-radius: 6px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
