@@ -7,7 +7,7 @@ call, which is what makes it possible to have a dev-server instance and a
 pytest instance coexist without stepping on each other.
 
 Import order matters here: matplotlib's backend must be set to 'Agg'
-BEFORE anything imports pyplot, including app.core.resume_screening_ai,
+BEFORE anything imports pyplot, including core.resume_screening_ai,
 because this process has no display to render a GUI window to. That's
 why it happens as the very first thing in this file.
 """

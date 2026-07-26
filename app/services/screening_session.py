@@ -21,7 +21,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from app.core.resume_screening_ai import ResumeScreeningAI, ResumeScreeningVisualizer
+from core.resume_screening_ai import ResumeScreeningAI, ResumeScreeningVisualizer
 
 
 class ScreeningSession:

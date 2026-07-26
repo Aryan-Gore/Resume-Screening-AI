@@ -4,7 +4,7 @@ app/services/file_parser.py
 Turns an uploaded file (.txt, .pdf, .docx) into plain text so it can be
 handed to ResumeScreeningAI.load_job_description() / load_resumes().
 
-Kept separate from app/core/resume_screening_ai.py on purpose: that file
+Kept separate from core/resume_screening_ai.py on purpose: that file
 is the original AI engine, byte-for-byte untouched. Parsing uploaded file
 formats is a web-app concern, not an AI-engine concern, so it lives here.
 """

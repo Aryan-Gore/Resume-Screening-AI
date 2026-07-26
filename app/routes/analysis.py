@@ -9,7 +9,7 @@ get_top_candidates() and generate_candidate_report() for step 4.
 
 from flask import Blueprint, current_app, jsonify, request
 
-from app.core.resume_screening_ai import print_results_table
+from core.resume_screening_ai import print_results_table
 from app.errors import ApiError
 
 analysis_bp = Blueprint("analysis", __name__, url_prefix="/api")

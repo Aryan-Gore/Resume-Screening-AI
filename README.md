@@ -31,6 +31,7 @@ test (see `tests/conftest.py`).
 ```
 resume-screening-app/
 ├── run.py                     # entry point: python run.py
+├── demo.py                    # standalone CLI demo — no Flask needed at all
 ├── config.py                  # Config / DevelopmentConfig / TestingConfig / ProductionConfig
 ├── pytest.ini
 ├── requirements.txt           # runtime dependencies
@@ -38,12 +39,12 @@ resume-screening-app/
 ├── .env.example                # copy to .env for local secrets (gitignored)
 ├── .gitignore
 │
-├── app/                        # the application package
+├── core/                        # your original AI engine — byte-for-byte unchanged
+│   └── resume_screening_ai.py   # deliberately NOT nested inside app/ (see below)
+│
+├── app/                        # the Flask application package
 │   ├── __init__.py             # create_app() factory - the only place Flask() is constructed
 │   ├── errors.py               # ApiError + shared error handlers
-│   │
-│   ├── core/
-│   │   └── resume_screening_ai.py   # your original AI engine — byte-for-byte unchanged
 │   │
 │   ├── services/                # business logic, framework-agnostic
 │   │   ├── file_parser.py       # .txt/.pdf/.docx -> plain text
@@ -72,6 +73,13 @@ resume-screening-app/
     └── test_session_and_pages.py
 ```
 
+Run the standalone demo (prints a results table, saves `rankings.png` /
+`summary.png` / `results.csv` to the current directory, no server needed):
+
+```bash
+python demo.py
+```
+
 ## Why it's organized this way
 
 - **`create_app()` instead of a module-level `app = Flask(__name__)`.**
@@ -83,11 +91,14 @@ resume-screening-app/
 - **Blueprints instead of one `app.py`.** The old file mixed JD handling,
   resume handling, scoring, charts, and error handling in ~400 lines.
   Now each feature area is a file you can open on its own.
-- **`app/core/` is quarantined.** Your original `resume_screening_ai.py`
-  sits alone in its own package, with nothing else in `app/` importing
-  from it except through the thin service/route layers. If you ever want
-  to prove nothing else touches your algorithm, `app/core/` is the whole
-  answer.
+- **`core/` sits outside `app/` entirely, not nested inside it.** It
+  started as `app/core/`, but that meant importing it at all dragged in
+  `app/__init__.py` — which imports Flask, config, the whole factory.
+  The AI engine has nothing to do with the web layer that wraps it, so it
+  shouldn't need Flask installed just to be imported. That's also why
+  `demo.py` at the root can `from core.resume_screening_ai import ...`
+  and run with zero Flask dependency — try `python demo.py` with Flask
+  uninstalled and it still works.
 - **Config as classes.** `TestingConfig` writes generated charts to
   `charts_test/` instead of `charts/`, so running the test suite while
   the dev server is also running never collides on files. That's a small
@@ -101,7 +112,7 @@ resume-screening-app/
 
 | Feature | Where |
 |---|---|
-| Text preprocessing, skill/experience/education extraction | `app/core/resume_screening_ai.py` (unchanged), invoked from `app/routes/job_description.py` and `app/routes/resumes.py` |
+| Text preprocessing, skill/experience/education extraction | `core/resume_screening_ai.py` (unchanged), invoked from `app/routes/job_description.py` and `app/routes/resumes.py`, or directly via `demo.py` |
 | Weighted scoring (`calculate_final_scores`) | `app/routes/analysis.py` |
 | All 5 Matplotlib visualizations | `app/routes/charts.py`, calling `ScreeningSession.visualizer` directly — real PNGs, not a JS reimplementation |
 | Session/state management | `app/services/screening_session.py` |
