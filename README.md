@@ -21,6 +21,7 @@ things you'd need to know before changing or deploying any of it.
 - [The wizard workflow](#the-wizard-workflow)
 - [API reference](#api-reference)
 - [The scoring algorithm](#the-scoring-algorithm)
+- [core/resume_screening_ai.py reference](#coreresume_screening_aipy-reference)
 - [Frontend notes](#frontend-notes)
 - [Testing](#testing)
 - [The demo script](#the-demo-script)
@@ -524,6 +525,110 @@ is exactly `0.0`, not just low.
    * skill_match + weights.experience * exp_score + weights.education *
    edu_score`, all four inputs on a 0–1 scale before the final `* 100` for
    display.
+
+---
+
+## `core/resume_screening_ai.py` reference
+
+The section above explains what the algorithm does; this is what the
+module itself looks like — every class, every public method, exact
+signature (pulled with `inspect.signature`, not typed from memory).
+Useful if you're calling this directly (`demo.py` does) or tuning the
+algorithm, rather than going through the HTTP API.
+
+Two instance attributes are worth flagging up front because they look
+load-bearing and aren't: `ResumeScreeningAI.__init__` sets
+`self.scaler = MinMaxScaler()` and `self.similarity_scores = None`, and
+grepping the whole file shows neither name appears anywhere else in it.
+`MinMaxScaler` is imported and instantiated but no `calculate_*` method
+ever calls `.fit_transform()` on it — scores are normalized ad hoc
+instead (`min(years / 20, 1.0)`, the fixed education dict, etc.). Not a
+bug, nothing breaks — just dead state, worth knowing if you're reading
+the class expecting the scaler to do something.
+
+### `TextPreprocessor`
+
+| Method | Signature | Does |
+|---|---|---|
+| `clean_text` | `(text: str) -> str` | lowercase, strip URLs/emails, strip non-alpha chars, collapse whitespace |
+| `tokenize_and_lemmatize` | `(text: str) -> list[str]` | `nltk.word_tokenize`, drop stopwords + tokens ≤2 chars, lemmatize each survivor |
+| `preprocess` | `(text: str) -> str` | runs both of the above, rejoins into one string — **this** is what actually gets fed to `TfidfVectorizer`, not the raw text |
+
+### `SkillExtractor`
+
+Constructor loads two fixed sets, checked via `skill in text.lower()` —
+substring containment, no word-boundary regex anywhere:
+
+```
+technical (34): agile, angular, aws, azure, c++, ci/cd, computer vision, css,
+  deep learning, devops, django, docker, flask, gcp, git, html, java, javascript,
+  kubernetes, machine learning, microservices, nlp, nodejs, numpy, pandas, python,
+  pytorch, react, rest api, scikit-learn, scrum, sql, tensorflow, vue
+
+soft (12): adaptability, analytical, collaboration, communication, creativity,
+  critical thinking, leadership, negotiation, presentation, problem solving,
+  teamwork, time management
+```
+
+`extract_skills(text: str) -> dict` returns
+`{"technical": [...], "soft": [...], "total_count": int}` — whatever
+subset of the vocabulary above matched, in set-iteration order, not
+alphabetical and not ranked by relevance.
+
+### `ExperienceAnalyzer`
+
+| Method | Signature | Returns |
+|---|---|---|
+| `extract_years_of_experience` | `(text: str) -> float` | `max()` across the three regex patterns above, or `0.0` if none match |
+| `extract_education_level` | `(text: str) -> str` | first tier match wins, per the priority order above; falls through to `"Other"` |
+
+### `ResumeScreeningAI`
+
+The orchestrator — owns one of each class above, plus one
+`TfidfVectorizer(max_features=500, ngram_range=(1, 2))`, plus the loaded
+state (`job_description`, `resumes_data`, `final_scores`).
+
+| Method | Signature | Notes |
+|---|---|---|
+| `load_job_description` | `(job_description_text: str) -> None` | stores `{"raw", "processed", "skills"}` on `self.job_description` |
+| `load_resumes` | `(resumes_list: list[dict]) -> None` | each dict needs `"name"` + `"text"`; builds `self.resumes_data`, a `pandas.DataFrame` with columns `name, raw_text, processed_text, skills, years_of_experience, education` |
+| `calculate_text_similarity` | `() -> np.ndarray` | fits TF-IDF on **JD + all resumes together** — the vocabulary, and therefore the score, shifts depending on what else is in the batch |
+| `calculate_skill_match_score` | `() -> np.ndarray` | Jaccard per resume; `0.0` for a resume with zero detected skills, checked explicitly rather than left as a division error |
+| `calculate_experience_score` | `() -> np.ndarray` | the `years_of_experience` column, normalized `min(x / 20, 1.0)` |
+| `calculate_education_score` | `() -> np.ndarray` | the `education` column mapped through the fixed tier dict |
+| `calculate_final_scores` | `(weights: dict = None) -> pd.DataFrame` | calls all four methods above and combines them; returns a DataFrame with columns `Candidate, Text_Similarity, Skill_Match, Experience_Score, Education_Score, Final_Score, Technical_Skills, Soft_Skills, Years_Experience, Education_Level, Rank` — **this is the exact shape `/api/analyze`'s `results` array serializes** |
+| `get_top_candidates` | `(n: int = 5) -> pd.DataFrame` | `self.final_scores.head(n)`; raises `ValueError` if called before `calculate_final_scores` |
+| `generate_candidate_report` | `(candidate_name: str) -> dict` | exact-string match on the candidate name; raises `IndexError` — not a custom exception — on no match, which `app/routes/analysis.py` catches specifically to produce the API's `404` |
+
+### `ResumeScreeningVisualizer`
+
+Constructor takes the `ResumeScreeningAI` instance it visualizes, and
+sets **global** matplotlib/seaborn state as a side effect —
+`plt.style.use('seaborn-v0_8-darkgrid')` and `sns.set_palette('husl')`
+run on every instantiation, affecting any other plotting done in the
+same process.
+
+| Method | Signature | Chart |
+|---|---|---|
+| `plot_candidate_rankings` | `(top_n=10, save_path=None)` | horizontal bar chart, one bar per candidate |
+| `plot_score_breakdown` | `(candidate_name, save_path=None)` | polar radar + bar chart of one candidate's four component scores |
+| `plot_skills_comparison` | `(top_n=5, save_path=None)` | grouped bars (technical vs soft skill counts) + a twin-axis chart (years experience vs education score) |
+| `plot_score_distribution` | `(save_path=None)` | 2×2 grid — three histograms plus a box plot across all four score components |
+| `generate_summary_report` | `(save_path=None)` | all of the above combined into one `GridSpec` figure, plus a rendered mean/median/std/min/max statistics table |
+
+All five raise `ValueError` if called before `calculate_final_scores`
+(`self.ai.final_scores is None`) — except `plot_score_breakdown`, which
+instead propagates whatever `generate_candidate_report` raises, since it
+calls that method internally.
+
+### `print_results_table(results_df: pd.DataFrame) -> None`
+
+Module-level function, not a method — prints a fixed-width console
+table, no return value. Called from `app/routes/analysis.py` after
+every successful `/api/analyze`; the one piece of the original module
+with no HTTP-visible output (see [The wizard workflow](#the-wizard-workflow)).
+
+---
 
 ## Frontend notes
 
