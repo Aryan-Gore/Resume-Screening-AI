@@ -78,13 +78,6 @@
           <p class="text-[11px] font-mono text-muted-2 leading-none mt-1">Resume Screening AI</p>
         </div>
       </div>
-      <nav class="header-nav hidden lg:flex items-center gap-6" aria-label="Primary">
-        <a href="#home" class="header-nav-link">Home</a>
-        <a href="#resume-analyzer" class="header-nav-link">Resume Analyzer</a>
-        <a href="#career-hub" class="header-nav-link">Career Hub</a>
-        <a href="#resume-resources" class="header-nav-link">Resources</a>
-        <a href="#interview-prep" class="header-nav-link">Interview Prep</a>
-      </nav>
       <div class="flex items-center gap-2">
         <button id="start-over-btn" class="btn-ghost hidden text-xs">
           <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
@@ -94,155 +87,12 @@
           <i data-lucide="sun" class="icon-sun"></i>
           <i data-lucide="moon" class="icon-moon"></i>
         </button>
-        <button id="mobile-menu-btn" class="mobile-menu-btn lg:hidden" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu-panel">
-          <i data-lucide="menu" class="mobile-menu-icon-open w-5 h-5"></i>
-          <i data-lucide="x" class="mobile-menu-icon-close w-5 h-5"></i>
-        </button>
       </div>
-    </div>
-    <div id="mobile-menu-panel" class="mobile-menu-panel hidden lg:hidden" aria-label="Mobile navigation">
-      <a href="#home" class="mobile-menu-link">Home</a>
-      <a href="#resume-analyzer" class="mobile-menu-link">Resume Analyzer</a>
-      <a href="#career-hub" class="mobile-menu-link">Career Hub</a>
-      <a href="#resume-resources" class="mobile-menu-link">Resume Resources</a>
-      <a href="#interview-prep" class="mobile-menu-link">Interview Prep</a>
     </div>
   </header>
 
-  <!-- ======================= HOME ======================= -->
-  <section id="home" class="scroll-mt-24">
-    <div class="max-w-6xl mx-auto px-6 pt-16 pb-20">
-      <div class="max-w-2xl">
-        <p class="font-mono text-xs text-brass tracking-widest uppercase mb-4">Gauge · Resume Screening AI</p>
-        <h1 class="font-display text-4xl sm:text-5xl font-semibold text-paper leading-tight mb-5">Screen every resume against the role — in seconds, not hours.</h1>
-        <p class="text-muted leading-relaxed text-base mb-8 max-w-xl">Score a whole candidate pool with real TF-IDF text similarity and skill matching, rank every applicant against the job description, and see exactly where each resume falls short before you schedule a single interview.</p>
-        <div class="flex flex-wrap gap-3">
-          <a href="#resume-analyzer" class="btn-primary">
-            <span class="btn-label">Start Screening</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </a>
-          <a href="#career-hub" class="btn-secondary">
-            <i data-lucide="compass" class="w-4 h-4"></i>
-            <span>Explore Career Hub</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- feature grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-16">
-        <a href="#resume-analyzer" class="card feature-card p-6">
-          <div class="w-10 h-10 rounded-full bg-ink-700 border border-ink-600 flex items-center justify-center text-brass mb-4">
-            <i data-lucide="file-search" class="w-5 h-5"></i>
-          </div>
-          <h3 class="font-display text-base font-semibold text-paper mb-1.5">Resume &amp; ATS Analysis</h3>
-          <p class="text-sm text-muted leading-relaxed">TF-IDF text similarity and parsing checks, the same way an ATS reads an incoming resume.</p>
-        </a>
-        <a href="#resume-analyzer" class="card feature-card p-6">
-          <div class="w-10 h-10 rounded-full bg-ink-700 border border-ink-600 flex items-center justify-center text-brass mb-4">
-            <i data-lucide="target" class="w-5 h-5"></i>
-          </div>
-          <h3 class="font-display text-base font-semibold text-paper mb-1.5">Job Match &amp; Skill Gap</h3>
-          <p class="text-sm text-muted leading-relaxed">Jaccard skill matching shows exactly which required skills each candidate has, and which are missing.</p>
-        </a>
-        <a href="#interview-prep" class="card feature-card p-6">
-          <div class="w-10 h-10 rounded-full bg-ink-700 border border-ink-600 flex items-center justify-center text-brass mb-4">
-            <i data-lucide="mic" class="w-5 h-5"></i>
-          </div>
-          <h3 class="font-display text-base font-semibold text-paper mb-1.5">Interview Question Bank</h3>
-          <p class="text-sm text-muted leading-relaxed">A library of technical, HR, and behavioral questions to run interviews from, with a model answer for each.</p>
-        </a>
-        <a href="#career-hub" class="card feature-card p-6">
-          <div class="w-10 h-10 rounded-full bg-ink-700 border border-ink-600 flex items-center justify-center text-brass mb-4">
-            <i data-lucide="compass" class="w-5 h-5"></i>
-          </div>
-          <h3 class="font-display text-base font-semibold text-paper mb-1.5">Career Guidance</h3>
-          <p class="text-sm text-muted leading-relaxed">Articles on resumes, interviews, and job search strategy — ready to share with your applicants.</p>
-        </a>
-        <a href="#resume-resources" class="card feature-card p-6">
-          <div class="w-10 h-10 rounded-full bg-ink-700 border border-ink-600 flex items-center justify-center text-brass mb-4">
-            <i data-lucide="file-text" class="w-5 h-5"></i>
-          </div>
-          <h3 class="font-display text-base font-semibold text-paper mb-1.5">Resume Resources</h3>
-          <p class="text-sm text-muted leading-relaxed">Templates, examples, and checklists you can point candidates to during the process.</p>
-        </a>
-      </div>
-
-      <!-- how it works -->
-      <div class="mt-20">
-        <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">How it works</p>
-        <h2 class="font-display text-2xl font-semibold text-paper mb-8">From upload to insight in four steps</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div>
-            <div class="w-9 h-9 rounded-full bg-ink-800 border-2 border-ink-600 flex items-center justify-center font-mono text-sm font-semibold text-brass mb-3">1</div>
-            <h3 class="font-display text-sm font-semibold text-paper mb-1">Add the role</h3>
-            <p class="text-sm text-muted leading-relaxed">Paste or upload the job description.</p>
-          </div>
-          <div>
-            <div class="w-9 h-9 rounded-full bg-ink-800 border-2 border-ink-600 flex items-center justify-center font-mono text-sm font-semibold text-brass mb-3">2</div>
-            <h3 class="font-display text-sm font-semibold text-paper mb-1">Add candidates</h3>
-            <p class="text-sm text-muted leading-relaxed">Upload one resume or a whole pool.</p>
-          </div>
-          <div>
-            <div class="w-9 h-9 rounded-full bg-ink-800 border-2 border-ink-600 flex items-center justify-center font-mono text-sm font-semibold text-brass mb-3">3</div>
-            <h3 class="font-display text-sm font-semibold text-paper mb-1">Calibrate weights</h3>
-            <p class="text-sm text-muted leading-relaxed">Decide what should matter most for this role.</p>
-          </div>
-          <div>
-            <div class="w-9 h-9 rounded-full bg-ink-800 border-2 border-ink-600 flex items-center justify-center font-mono text-sm font-semibold text-brass mb-3">4</div>
-            <h3 class="font-display text-sm font-semibold text-paper mb-1">Read the results</h3>
-            <p class="text-sm text-muted leading-relaxed">Ranked scores, charts, and a full report.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- featured content teaser -->
-      <div class="mt-20">
-        <div class="flex items-end justify-between mb-6">
-          <div>
-            <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">From the Career Hub</p>
-            <h2 class="font-display text-2xl font-semibold text-paper">Start with these</h2>
-          </div>
-          <a href="#career-hub" class="header-nav-link">View all</a>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <a href="#career-hub" class="card feature-card p-5">
-            <span class="font-mono text-[10px] tracking-wider uppercase text-brass mb-2 block">Featured</span>
-            <h3 class="font-display text-sm font-semibold text-paper">Build a Resume That Gets Noticed</h3>
-          </a>
-          <a href="#career-hub" class="card feature-card p-5">
-            <span class="font-mono text-[10px] tracking-wider uppercase text-muted-2 mb-2 block">Resume &amp; ATS</span>
-            <h3 class="font-display text-sm font-semibold text-paper">How ATS Resume Screening Works</h3>
-          </a>
-          <a href="#career-hub" class="card feature-card p-5">
-            <span class="font-mono text-[10px] tracking-wider uppercase text-muted-2 mb-2 block">Interview Preparation</span>
-            <h3 class="font-display text-sm font-semibold text-paper">How to Prepare for a Technical Interview</h3>
-          </a>
-        </div>
-      </div>
-
-      <!-- final CTA -->
-      <div class="card mt-20 p-10 text-center">
-        <h2 class="font-display text-2xl sm:text-3xl font-semibold text-paper mb-3">Ready to screen your first candidate pool?</h2>
-        <p class="text-muted leading-relaxed mb-6 max-w-md mx-auto">Upload a job description and a batch of resumes, and get a calibrated, ranked score for every candidate in seconds.</p>
-        <a href="#resume-analyzer" class="btn-primary">
-          <span class="btn-label">Start Screening</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= RESUME ANALYZER (intro) ======================= -->
-  <div id="resume-analyzer" class="border-t border-rule scroll-mt-24">
-    <div class="max-w-6xl mx-auto px-6 pt-16 pb-0">
-      <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Resume Analyzer</p>
-      <h2 class="font-display text-3xl font-semibold text-paper mb-3">Run the analysis</h2>
-      <p class="text-muted leading-relaxed max-w-2xl">The same four-step engine from the top of this page — text similarity, skill matching, experience, and education, combined into one calibrated score.</p>
-    </div>
-  </div>
-
   <!-- ======================= STEPPER ======================= -->
-  <nav id="screening-section" class="max-w-6xl mx-auto px-6 pt-8 pb-2 scroll-mt-24" aria-label="Progress">
+  <nav class="max-w-6xl mx-auto px-6 pt-8 pb-2" aria-label="Progress">
     <ol class="stepper-track flex items-start gap-3 sm:gap-6">
       <li class="step-nav-item flex-1" data-step="1" data-state="active">
         <button class="step-nav-btn" data-target="1">
@@ -571,136 +421,6 @@
 
   </main>
 
-  <!-- ======================= CAREER HUB ======================= -->
-  <section id="career-hub" class="career-hub border-t border-rule scroll-mt-24">
-    <div class="max-w-6xl mx-auto px-6 py-16">
-      <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Career Hub</p>
-      <h2 class="font-display text-3xl font-semibold text-paper mb-3">Resources for your job search</h2>
-      <p class="text-muted leading-relaxed mb-8 max-w-2xl">Practical guidance for resumes, interviews, job searching, and professional growth.</p>
-
-      <div class="card p-5 mb-8">
-        <label for="career-search-input" class="sr-only">Search career resources</label>
-        <div class="career-search relative w-full sm:max-w-sm mb-4">
-          <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-2 w-4 h-4 pointer-events-none"></i>
-          <input type="text" id="career-search-input" placeholder="Search career resources…"
-            class="w-full bg-ink-800 border border-ink-600 rounded-lg pl-10 pr-4 py-2.5 text-sm text-paper placeholder-muted-2" />
-        </div>
-        <div class="career-filters flex flex-wrap gap-2" role="tablist" aria-label="Filter career articles by category">
-          <button type="button" class="jd-tab-btn career-filter-btn active" role="tab" aria-selected="true" data-category="all">All</button>
-          <button type="button" class="jd-tab-btn career-filter-btn" role="tab" aria-selected="false" data-category="Resume &amp; ATS">Resume &amp; ATS</button>
-          <button type="button" class="jd-tab-btn career-filter-btn" role="tab" aria-selected="false" data-category="Interview Preparation">Interview</button>
-          <button type="button" class="jd-tab-btn career-filter-btn" role="tab" aria-selected="false" data-category="Career Advice">Career</button>
-          <button type="button" class="jd-tab-btn career-filter-btn" role="tab" aria-selected="false" data-category="Job Search Tips">Job Search</button>
-          <button type="button" class="jd-tab-btn career-filter-btn" role="tab" aria-selected="false" data-category="Industry Guides">Industry</button>
-          <button type="button" class="jd-tab-btn career-filter-btn" role="tab" aria-selected="false" data-category="Featured">Featured</button>
-        </div>
-      </div>
-
-      <div id="career-articles-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-      <p id="career-empty-state" class="career-empty-state hidden text-sm text-muted-2 italic py-10 text-center card mt-5"></p>
-    </div>
-  </section>
-
-  <!-- ======================= RESUME RESOURCES ======================= -->
-  <section id="resume-resources" class="resource-hub border-t border-rule scroll-mt-24">
-    <div class="max-w-6xl mx-auto px-6 py-16">
-      <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Resume Resources</p>
-      <h2 class="font-display text-3xl font-semibold text-paper mb-3">Templates, examples, and guides</h2>
-      <p class="text-muted leading-relaxed mb-8 max-w-2xl">Practical templates, examples, and guides to help you build a stronger application.</p>
-
-      <div class="card p-5 mb-8">
-        <label for="resource-search-input" class="sr-only">Search resume resources</label>
-        <div class="resource-search relative w-full sm:max-w-sm mb-4">
-          <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-2 w-4 h-4 pointer-events-none"></i>
-          <input type="text" id="resource-search-input" placeholder="Search resume resources…"
-            class="w-full bg-ink-800 border border-ink-600 rounded-lg pl-10 pr-4 py-2.5 text-sm text-paper placeholder-muted-2" />
-        </div>
-        <div class="resource-filters flex flex-wrap gap-2" role="tablist" aria-label="Filter resources by category">
-          <button type="button" class="jd-tab-btn resource-filter-btn active" role="tab" aria-selected="true" data-category="all">All</button>
-          <button type="button" class="jd-tab-btn resource-filter-btn" role="tab" aria-selected="false" data-category="Resume Templates">Templates</button>
-          <button type="button" class="jd-tab-btn resource-filter-btn" role="tab" aria-selected="false" data-category="Resume Examples">Examples</button>
-          <button type="button" class="jd-tab-btn resource-filter-btn" role="tab" aria-selected="false" data-category="ATS-Friendly Formats">ATS</button>
-          <button type="button" class="jd-tab-btn resource-filter-btn" role="tab" aria-selected="false" data-category="Skill Guides">Skills</button>
-          <button type="button" class="jd-tab-btn resource-filter-btn" role="tab" aria-selected="false" data-category="Interview Question Sets">Interview</button>
-          <button type="button" class="jd-tab-btn resource-filter-btn" role="tab" aria-selected="false" data-category="Cover Letter Examples">Cover Letters</button>
-        </div>
-      </div>
-
-      <div id="resource-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-      <p id="resource-empty-state" class="resource-empty-state hidden text-sm text-muted-2 italic py-10 text-center card mt-5"></p>
-    </div>
-  </section>
-
-  <!-- ======================= INTERVIEW PREP ======================= -->
-  <section id="interview-prep" class="interview-prep border-t border-rule scroll-mt-24">
-    <div class="max-w-6xl mx-auto px-6 py-16">
-      <p class="font-mono text-xs text-brass tracking-widest uppercase mb-2">Interview Question Bank</p>
-      <h2 class="font-display text-3xl font-semibold text-paper mb-3">Questions to ask, with a model answer for each</h2>
-      <p class="text-muted leading-relaxed mb-8 max-w-2xl">A library of technical, HR, and behavioral questions to pull from when interviewing candidates — organized by topic and difficulty, with a model answer so you know what a strong response covers.</p>
-
-      <div class="card p-5 mb-8">
-        <label for="interview-search-input" class="sr-only">Search interview questions</label>
-        <div class="interview-search relative w-full sm:max-w-sm mb-4">
-          <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-2 w-4 h-4 pointer-events-none"></i>
-          <input type="text" id="interview-search-input" placeholder="Search the question bank…"
-            class="w-full bg-ink-800 border border-ink-600 rounded-lg pl-10 pr-4 py-2.5 text-sm text-paper placeholder-muted-2" />
-        </div>
-        <div class="interview-filters flex flex-wrap gap-2 mb-3" role="tablist" aria-label="Filter questions by topic">
-          <button type="button" class="jd-tab-btn interview-filter-btn active" role="tab" aria-selected="true" data-category="all">All topics</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="DSA">DSA</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="Java">Java</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="C/C++">C/C++</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="Python">Python</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="DBMS">DBMS</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="OOP">OOP</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="Operating Systems">OS</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="Computer Networks">Networks</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="HR Questions">HR</button>
-          <button type="button" class="jd-tab-btn interview-filter-btn" role="tab" aria-selected="false" data-category="Behavioral">Behavioral</button>
-        </div>
-        <div class="interview-difficulty-filters flex flex-wrap gap-2" role="tablist" aria-label="Filter questions by difficulty">
-          <button type="button" class="jd-tab-btn interview-difficulty-btn active" role="tab" aria-selected="true" data-difficulty="all">All levels</button>
-          <button type="button" class="jd-tab-btn interview-difficulty-btn" role="tab" aria-selected="false" data-difficulty="Easy">Easy</button>
-          <button type="button" class="jd-tab-btn interview-difficulty-btn" role="tab" aria-selected="false" data-difficulty="Medium">Medium</button>
-          <button type="button" class="jd-tab-btn interview-difficulty-btn" role="tab" aria-selected="false" data-difficulty="Hard">Hard</button>
-        </div>
-      </div>
-
-      <div id="interview-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-      <p id="interview-empty-state" class="interview-empty-state hidden text-sm text-muted-2 italic py-10 text-center card mt-5"></p>
-    </div>
-  </section>
-
-  <!-- ======================= FOOTER ======================= -->
-  <footer class="border-t border-rule">
-    <div class="max-w-6xl mx-auto px-6 py-12">
-      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-8">
-        <div class="max-w-xs">
-          <div class="flex items-center gap-3 mb-3">
-            <div class="w-8 h-8 rounded-lg bg-ink-800 border border-ink-600 flex items-center justify-center text-brass">
-              <i data-lucide="gauge" class="w-4 h-4"></i>
-            </div>
-            <span class="font-display text-base font-semibold text-paper">Gauge</span>
-          </div>
-          <p class="text-sm text-muted leading-relaxed">Helping hiring teams score, rank, and understand every resume that comes in.</p>
-        </div>
-        <nav aria-label="Footer">
-          <p class="font-mono text-[11px] uppercase tracking-widest text-muted-2 mb-3">Navigate</p>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#home" class="text-muted hover:text-brass transition-colors">Home</a></li>
-            <li><a href="#resume-analyzer" class="text-muted hover:text-brass transition-colors">Resume Analyzer</a></li>
-            <li><a href="#career-hub" class="text-muted hover:text-brass transition-colors">Career Hub</a></li>
-            <li><a href="#resume-resources" class="text-muted hover:text-brass transition-colors">Resume Resources</a></li>
-            <li><a href="#interview-prep" class="text-muted hover:text-brass transition-colors">Interview Question Bank</a></li>
-          </ul>
-        </nav>
-      </div>
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-10 pt-6 border-t border-rule">
-        <p class="font-mono text-xs text-muted-2">© 2026 Gauge. Built for measuring fit, not gatekeeping it.</p>
-      </div>
-    </div>
-  </footer>
-
   <!-- ======================= CANDIDATE DETAIL MODAL ======================= -->
   <div id="candidate-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-label="Candidate detail">
     <div class="modal-panel">
@@ -708,35 +428,10 @@
     </div>
   </div>
 
-  <!-- ======================= CAREER ARTICLE MODAL ======================= -->
-  <div id="career-modal" class="modal-backdrop career-modal hidden" role="dialog" aria-modal="true" aria-label="Career article detail">
-    <div class="modal-panel">
-      <div class="p-6" id="career-modal-content"><!-- filled by career-hub.js --></div>
-    </div>
-  </div>
-
-  <!-- ======================= RESOURCE DETAIL MODAL ======================= -->
-  <div id="resource-modal" class="modal-backdrop resource-modal hidden" role="dialog" aria-modal="true" aria-label="Resource detail">
-    <div class="modal-panel">
-      <div class="p-6" id="resource-modal-content"><!-- filled by resources.js --></div>
-    </div>
-  </div>
-
-  <!-- ======================= INTERVIEW QUESTION MODAL ======================= -->
-  <div id="interview-modal" class="modal-backdrop interview-modal hidden" role="dialog" aria-modal="true" aria-label="Interview question detail">
-    <div class="modal-panel">
-      <div class="p-6" id="interview-modal-content"><!-- filled by interview-prep.js --></div>
-    </div>
-  </div>
-
   <!-- ======================= TOASTS ======================= -->
   <div id="toast-container" aria-live="polite"></div>
 
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/career-hub.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/resources.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/site-nav.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/interview-prep.js') }}"></script>
 
   <!-- Theme toggle click handler. Kept as a tiny inline script rather than
        folded into app.js, since this is purely a presentation concern
