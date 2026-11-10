@@ -970,3 +970,129 @@ header {
 .btn-primary .spinner {
   border-top-color: var(--on-accent);
 }
+
+/* =============================================================================
+   Pass 4 — page sections added in index.html
+   ========================================================================== */
+html {
+  scroll-padding-top: 80px;
+}
+header {
+  border-bottom: 1px solid var(--rule);
+  background: var(--ink-900);
+}
+header nav a {
+  transition: color 150ms;
+}
+
+.intro {
+  background: var(--ink-700);
+  border-bottom: 1px solid var(--rule);
+}
+.intro h1 {
+  font-size: 2.25rem;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+}
+.intro-facts {
+  background: var(--ink-600);
+  border: 1px solid var(--ink-600);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.intro-facts > div {
+  background: var(--ink-800);
+}
+
+.side-note {
+  align-self: start;
+  border-left: 2px solid var(--ink-600);
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.side-note h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--paper);
+  margin-bottom: 10px;
+}
+.side-note ul {
+  list-style: disc;
+  padding-left: 16px;
+  display: grid;
+  gap: 8px;
+}
+.side-note strong {
+  color: var(--paper-dim);
+  font-weight: 600;
+}
+@media (min-width: 1024px) {
+  .side-note {
+    position: sticky;
+    top: 96px;
+  }
+}
+
+.info-section {
+  background: var(--ink-700);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.how-item {
+  border-top: 2px solid var(--brass);
+  padding-top: 16px;
+}
+.how-item svg {
+  width: 20px;
+  height: 20px;
+  color: var(--brass);
+  margin-bottom: 10px;
+}
+.how-item h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--paper);
+  margin-bottom: 6px;
+}
+.how-item p {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.faq details {
+  border-bottom: 1px solid var(--rule);
+  padding: 16px 0;
+}
+.faq summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--paper);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+.faq summary::after {
+  content: "+";
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+}
+.faq details[open] summary::after {
+  content: "\2212";
+}
+.faq details p {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--muted);
+  max-width: 60ch;
+}
+
+.site-footer {
+  border-top: 1px solid var(--rule);
+  background: var(--ink-900);
+}
